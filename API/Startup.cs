@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using API.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -28,6 +29,9 @@ namespace API
             _services = services;
 
             services.AddCors();
+
+            services.AddSingleton(new UptimeService());
+
 
             services.AddMvc()
                 .AddJsonOptions(opts =>
