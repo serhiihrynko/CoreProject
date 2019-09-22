@@ -44,12 +44,44 @@ namespace API
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();
+                app.UseStatusCodePages();
+            }
+            else
+            {
+                ConfigureExceptions(app);
             }
 
             app.UseCors(builder => builder.AllowAnyOrigin());
 
             app.UseMvc();
+        }
+
+
+        private void ConfigureExceptions(IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(options => options.Run(async context =>
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+
+                var exception = context.Features.Get<IExceptionHandlerFeature>();
+
+                if (exception != null)
+                {
+                    var error = JsonConvert.SerializeObject(new
+                    {
+                        //Message = exception.Error.Message,
+                        //Message = 
+                        //    $"{exception.Error.Message}\r\n" +
+                        //    $"{exception.Error.InnerException?.Message}\r\n" +
+                        //    $"{exception.Error.InnerException?.InnerException?.Message}",
+                        Message = "Internal Server Error."
+                    });;
+
+                    await context.Response.WriteAsync(error);
+                }
+            }));
         }
     }
 }
