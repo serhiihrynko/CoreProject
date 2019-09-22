@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using API.Infrastructure;
 using API.Infrastructure.Email;
+using API.Jobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +9,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Quartz;
+using Quartz.Impl;
+using Quartz.Spi;
 
 namespace API
 {
@@ -31,12 +35,14 @@ namespace API
 
             services.AddCors();
 
+            // Jobs
+            //ConfigureServicesScheduledJobs();
 
-            services.Configure<EmailConfig>(_configuration.GetSection("Email"));
-
-
+            // Uptime Service
             services.AddSingleton(new UptimeService());
 
+            // Email Service
+            services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
 
@@ -49,6 +55,20 @@ namespace API
                 });
         }
 
+
+        private void ConfigureServicesScheduledJobs()
+        {
+            _services.AddSingleton<IJobFactory, JobFactory>();
+            _services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+
+            //_services.AddSingleton<>();
+            //_services.AddSingleton(new JobSchedule(
+            //    jobType: typeof(),
+            //    cronExpression: _configuration["Jobs:<taskname>:Schedule"])
+            //);
+
+            _services.AddHostedService<QuartzHostedService>();
+        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
