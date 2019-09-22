@@ -1,5 +1,7 @@
 ﻿using API.Infrastructure;
+using API.Infrastructure.Email;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -8,9 +10,12 @@ namespace API.Controllers
     {
         private readonly string message;
 
-        public StatusController(UptimeService uptimeService)
+        private readonly IEmailService _emailService;
+
+        public StatusController(UptimeService uptimeService, IEmailService emailService)
         {
             message = $"API is running... (Uptime: {uptimeService.Uptime}, Started at {uptimeService.TimeStarted})";
+            _emailService = emailService;
         }
 
 

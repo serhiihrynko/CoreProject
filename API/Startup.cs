@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using API.Infrastructure;
+using API.Infrastructure.Email;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +31,13 @@ namespace API
 
             services.AddCors();
 
+
+            services.Configure<EmailConfig>(_configuration.GetSection("Email"));
+
+
             services.AddSingleton(new UptimeService());
+
+            services.AddTransient<IEmailService, EmailService>();
 
 
             services.AddMvc()
