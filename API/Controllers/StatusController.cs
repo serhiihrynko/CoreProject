@@ -14,7 +14,7 @@ namespace API.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("")]
         public ActionResult<string> GetStatus()
         {
             return Ok(message);
