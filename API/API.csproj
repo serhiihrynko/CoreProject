@@ -15,4 +15,8 @@
     <Folder Include="Jobs\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DAO\DAO.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -2,10 +2,12 @@
 using API.Infrastructure;
 using API.Infrastructure.Email;
 using API.Jobs;
+using DAO.Contexts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -34,6 +36,8 @@ namespace API
             _services = services;
 
             services.AddCors();
+
+
 
             // Jobs
             //ConfigureServicesScheduledJobs();
@@ -69,6 +73,15 @@ namespace API
 
             _services.AddHostedService<QuartzHostedService>();
         }
+
+
+        private void ConfigureServicesDbContexts()
+        {
+            string connectionString = _configuration["ConnectionStrings:DefaultConnection"];
+
+            _services.AddDbContext<DbContextMain>(options => options.UseMySQL(connectionString));
+        }
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
