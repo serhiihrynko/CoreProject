@@ -20,6 +20,15 @@ namespace DAO.Contexts
 
         protected override void ConfigureModel(ModelBuilder modelBuilder)
         {
+
+            //modelBuilder.Entity<>(entity =>
+            //{
+            //    entity.ToTable("");
+
+            //    entity.HasKey(x =>);
+
+            //    entity.Property(x =>).HasColumnName("");
+            //});
         }
     }
 }

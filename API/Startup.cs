@@ -37,10 +37,11 @@ namespace API
 
             services.AddCors();
 
-
+            // Contexts
+            ConfigureServicesDbContexts();
 
             // Jobs
-            //ConfigureServicesScheduledJobs();
+            ConfigureServicesScheduledJobs();
 
             // Uptime Service
             services.AddSingleton(new UptimeService());
@@ -48,7 +49,6 @@ namespace API
             // Email Service
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
-
 
             services.AddMvc()
                 .AddJsonOptions(opts =>
