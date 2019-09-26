@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAO.Contexts
@@ -20,7 +21,6 @@ namespace DAO.Contexts
 
         protected override void ConfigureModel(ModelBuilder modelBuilder)
         {
-
             //modelBuilder.Entity<>(entity =>
             //{
             //    entity.ToTable("");

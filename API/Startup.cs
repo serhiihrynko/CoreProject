@@ -1,15 +1,22 @@
 ﻿using System.Net;
+using System.Text;
 using API.Infrastructure;
 using API.Infrastructure.Email;
+using API.Infrastructure.Jwt;
 using API.Jobs;
 using DAO.Contexts;
+using Domain.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
@@ -35,16 +42,23 @@ namespace API
         {
             _services = services;
 
+            // Uptime Service
+            services.AddSingleton(new UptimeService());
+
+            // Cors
             services.AddCors();
+
+            // Jwt
+            ConfigureServicesJwtAuthentication();
+
+            // Identity
+            ConfigureServicesIdentity();
 
             // Contexts
             ConfigureServicesDbContexts();
 
             // Jobs
             ConfigureServicesScheduledJobs();
-
-            // Uptime Service
-            services.AddSingleton(new UptimeService());
 
             // Email Service
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
@@ -59,6 +73,66 @@ namespace API
                 });
         }
 
+        private void ConfigureServicesJwtAuthentication()
+        {
+            IConfigurationSection tokenConfigurationSection = _configuration.GetSection("JwtOptions");
+            TokenManagement tokenManagement = tokenConfigurationSection.Get<TokenManagement>();
+
+            byte[] securityKey = Encoding.UTF8.GetBytes(tokenManagement.SecurityKey);
+
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(securityKey),
+                ValidateIssuerSigningKey = true,
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
+
+            _services.Configure<TokenManagement>(tokenConfigurationSection);
+
+            _services
+                .AddAuthentication(x =>
+                {
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = false;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = tokenValidationParameters;
+                });
+        }
+
+        private void ConfigureServicesIdentity()
+        {
+            _services.TryAddScoped<SignInManager<User>, SignInManager<User>>();
+            _services.TryAddScoped<RoleManager<IdentityRole>, AspNetRoleManager<IdentityRole>>();
+            _services.TryAddScoped<IRoleValidator<IdentityRole>, RoleValidator<IdentityRole>>();
+
+            IdentityBuilder identityBuilder;
+            identityBuilder = _services.AddIdentityCore<User>(x =>
+            {
+                // configure identity options
+                x.Password.RequireDigit = true;
+                x.Password.RequireLowercase = true;
+                x.Password.RequireUppercase = true;
+                x.Password.RequireNonAlphanumeric = true;
+                x.Password.RequiredLength = 8;
+            });
+
+            identityBuilder = new IdentityBuilder(identityBuilder.UserType, typeof(IdentityRole), identityBuilder.Services);
+
+            identityBuilder.AddEntityFrameworkStores<DbContextIdentity>().AddDefaultTokenProviders();
+        }
+
+        private void ConfigureServicesDbContexts()
+        {
+            string connectionString = _configuration["ConnectionStrings:DefaultConnection"];
+
+            _services.AddDbContext<DbContextIdentity>(options => options.UseMySQL(connectionString));
+            _services.AddDbContext<DbContextMain>(options => options.UseMySQL(connectionString));
+        }
 
         private void ConfigureServicesScheduledJobs()
         {
@@ -72,14 +146,6 @@ namespace API
             //);
 
             _services.AddHostedService<QuartzHostedService>();
-        }
-
-
-        private void ConfigureServicesDbContexts()
-        {
-            string connectionString = _configuration["ConnectionStrings:DefaultConnection"];
-
-            _services.AddDbContext<DbContextMain>(options => options.UseMySQL(connectionString));
         }
 
 
@@ -97,6 +163,8 @@ namespace API
             }
 
             app.UseCors(builder => builder.AllowAnyOrigin());
+
+            app.UseAuthentication();
 
             app.UseMvc();
         }
@@ -121,7 +189,7 @@ namespace API
                         //    $"{exception.Error.InnerException?.Message}\r\n" +
                         //    $"{exception.Error.InnerException?.InnerException?.Message}",
                         Message = "Internal Server Error."
-                    });;
+                    }); ;
 
                     await context.Response.WriteAsync(error);
                 }
