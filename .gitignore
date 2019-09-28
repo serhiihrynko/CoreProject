@@ -265,3 +265,7 @@ __pycache__/
 
 # Visual Studio Code
 .vscode/
+
+# AppSettings
+API/appsettings.json
+API/appsettings.Development.json

@@ -17,7 +17,6 @@ namespace API.Jobs
         private readonly IEnumerable<JobSchedule> _jobSchedules;
 
 
-
         public QuartzHostedService(
             IConfiguration configuration,
             ISchedulerFactory schedulerFactory,
@@ -31,9 +30,7 @@ namespace API.Jobs
         }
 
 
-
         public IScheduler Scheduler { get; set; }
-
 
 
         public async Task StartAsync(CancellationToken cancellationToken)

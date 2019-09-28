@@ -9,12 +9,10 @@ namespace API.Infrastructure.Jwt
     {
         public string SecurityKey { get; set; }
 
-        public int AccessExpiration { get; set; }
+        public int Expires { get; set; } // minutes
 
-        public int RefreshExpiration { get; set; }
+        //public string Issuer { get; set; }
 
-        public string Issuer { get; set; }
-
-        public string Audience { get; set; }
+        //public string Audience { get; set; }
     }
 }

@@ -4,15 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using API.Models.Users;
+using API.Models;
 
 namespace API.Controllers
 {
-    [Route("Users")]
+    [Route("[controller]")]
     [Authorize]
     public class UsersController : Controller
     {
@@ -30,12 +29,13 @@ namespace API.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = new User() {
+                var user = new User() 
+                {
                     Email = model.Email,
                     UserName = model.UserName
                 };
 
-                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {

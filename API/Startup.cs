@@ -1,9 +1,12 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text;
 using API.Infrastructure;
 using API.Infrastructure.Email;
+using API.Infrastructure.Identity;
 using API.Infrastructure.Jwt;
 using API.Jobs;
+using API.Models;
 using DAO.Contexts;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,10 +15,12 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Quartz;
@@ -30,7 +35,10 @@ namespace API
         private readonly IConfiguration _configuration;
 
 
-        public Startup(IHostingEnvironment env, IConfiguration configuration)
+        public Startup(
+            IWebHostEnvironment env,
+            IConfiguration configuration
+            )
         {
             _configuration = configuration;
         }
@@ -42,13 +50,13 @@ namespace API
         {
             _services = services;
 
-            // Uptime Service
-            services.AddSingleton(new UptimeService());
-
             // Cors
             services.AddCors();
 
-            // Jwt
+            // Uptime Service
+            services.AddSingleton(new UptimeService());
+
+            //jwt
             ConfigureServicesJwtAuthentication();
 
             // Identity
@@ -64,13 +72,8 @@ namespace API
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
-            services.AddMvc()
-                .AddJsonOptions(opts =>
-                {
-                    opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    //opts.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    //opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
-                });
+            services.AddMvc(options => { options.EnableEndpointRouting = false; })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
 
         private void ConfigureServicesJwtAuthentication()
@@ -84,6 +87,8 @@ namespace API
             {
                 IssuerSigningKey = new SymmetricSecurityKey(securityKey),
                 ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero,
                 ValidateIssuer = false,
                 ValidateAudience = false
             };
@@ -91,11 +96,7 @@ namespace API
             _services.Configure<TokenManagement>(tokenConfigurationSection);
 
             _services
-                .AddAuthentication(x =>
-                {
-                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(x =>
                 {
                     x.RequireHttpsMetadata = false;
@@ -106,32 +107,26 @@ namespace API
 
         private void ConfigureServicesIdentity()
         {
-            _services.TryAddScoped<SignInManager<User>, SignInManager<User>>();
-            _services.TryAddScoped<RoleManager<IdentityRole>, AspNetRoleManager<IdentityRole>>();
-            _services.TryAddScoped<IRoleValidator<IdentityRole>, RoleValidator<IdentityRole>>();
-
-            IdentityBuilder identityBuilder;
-            identityBuilder = _services.AddIdentityCore<User>(x =>
-            {
-                // configure identity options
-                x.Password.RequireDigit = true;
-                x.Password.RequireLowercase = true;
-                x.Password.RequireUppercase = true;
-                x.Password.RequireNonAlphanumeric = true;
-                x.Password.RequiredLength = 8;
-            });
-
-            identityBuilder = new IdentityBuilder(identityBuilder.UserType, typeof(IdentityRole), identityBuilder.Services);
-
-            identityBuilder.AddEntityFrameworkStores<DbContextIdentity>().AddDefaultTokenProviders();
+            _services
+                .AddIdentityCore<User>(x =>
+                {
+                    // Configure Identity password options
+                    x.Password.RequireDigit = true;
+                    x.Password.RequireLowercase = true;
+                    x.Password.RequireUppercase = true;
+                    x.Password.RequireNonAlphanumeric = true;
+                    x.Password.RequiredLength = 8;
+                })
+                .AddEntityFrameworkStores<DbContextIdentity>()
+                .AddDefaultTokenProviders();
         }
 
         private void ConfigureServicesDbContexts()
         {
             string connectionString = _configuration["ConnectionStrings:DefaultConnection"];
 
-            _services.AddDbContext<DbContextIdentity>(options => options.UseMySQL(connectionString));
-            _services.AddDbContext<DbContextMain>(options => options.UseMySQL(connectionString));
+            _services.AddDbContext<DbContextIdentity>(options => options.UseSqlServer(connectionString));
+            _services.AddDbContext<DbContextMain>(options => options.UseSqlServer(connectionString));
         }
 
         private void ConfigureServicesScheduledJobs()
@@ -150,17 +145,22 @@ namespace API
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                //app.UseDeveloperExceptionPage();
-                app.UseStatusCodePages();
+                app.UseDeveloperExceptionPage();
             }
             else
             {
                 ConfigureExceptions(app);
+                app.UseHsts();
             }
+
+            //IdentityInitializer.Initialize(
+            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            //);
 
             app.UseCors(builder => builder.AllowAnyOrigin());
 
@@ -183,13 +183,8 @@ namespace API
                 {
                     var error = JsonConvert.SerializeObject(new
                     {
-                        //Message = exception.Error.Message,
-                        //Message = 
-                        //    $"{exception.Error.Message}\r\n" +
-                        //    $"{exception.Error.InnerException?.Message}\r\n" +
-                        //    $"{exception.Error.InnerException?.InnerException?.Message}",
                         Message = "Internal Server Error."
-                    }); ;
+                    });
 
                     await context.Response.WriteAsync(error);
                 }

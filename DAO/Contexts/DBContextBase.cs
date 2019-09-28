@@ -1,5 +1,4 @@
-﻿using DAO.Common;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,14 +23,12 @@ namespace DAO.Contexts
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySQL(_connectionString);
+                optionsBuilder.UseSqlServer(_connectionString);
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            ConfigureModelBuilder.OnModelCreating(modelBuilder);
-
             ConfigureModel(modelBuilder);
         }
 
