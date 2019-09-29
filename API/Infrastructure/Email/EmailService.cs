@@ -1,5 +1,4 @@
 ﻿using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System;
@@ -17,8 +16,9 @@ namespace API.Infrastructure.Email
             _emailConfig = emailConfig.Value;
         }
 
-        public async Task SendEmailAsync(String email, String subject, String message)
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
+            if (message == null) throw new ArgumentNullException(nameof(message));
             var emailMessage = new MimeMessage();
 
             emailMessage.From.Add(new MailboxAddress(_emailConfig.FromName, _emailConfig.FromAddress));
@@ -26,22 +26,20 @@ namespace API.Infrastructure.Email
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = message };
 
-            using (var client = new SmtpClient())
-            {
-                await client.ConnectAsync(
-                    _emailConfig.MailServerAddress,
-                    int.Parse(_emailConfig.MailServerPort),
-                    SecureSocketOptions.Auto
-                ).ConfigureAwait(false);
+            using var client = new SmtpClient();
 
-                await client.AuthenticateAsync(new NetworkCredential(_emailConfig.UserId, _emailConfig.UserPassword));
+            await client.ConnectAsync(
+                _emailConfig.MailServerAddress,
+                int.Parse(_emailConfig.MailServerPort)
+            ).ConfigureAwait(false);
 
-                await client.SendAsync(emailMessage)
-                    .ConfigureAwait(false);
+            await client.AuthenticateAsync(new NetworkCredential(_emailConfig.UserId, _emailConfig.UserPassword));
 
-                await client.DisconnectAsync(true)
-                    .ConfigureAwait(false);
-            }
+            await client.SendAsync(emailMessage)
+                .ConfigureAwait(false);
+
+            await client.DisconnectAsync(true)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -1,12 +1,9 @@
-﻿using API.Common;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using API.Extensions;
 using API.Models;
 
 namespace API.Controllers

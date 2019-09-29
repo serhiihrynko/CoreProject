@@ -12,7 +12,7 @@ namespace Tests.Integration
             // Arrange
 
             // Act
-            var response = await _client.GetAsync("/");
+            var response = await Client.GetAsync("/");
             string message = await response.Content.ReadAsStringAsync();
 
             // Assert

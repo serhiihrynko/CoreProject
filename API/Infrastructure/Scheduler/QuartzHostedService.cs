@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Quartz;
-using Quartz.Spi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Quartz;
+using Quartz.Spi;
 
-namespace API.Jobs
+namespace API.Infrastructure.Scheduler
 {
     public class QuartzHostedService : IHostedService
     {

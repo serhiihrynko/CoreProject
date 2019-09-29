@@ -3,10 +3,8 @@ using System.Net;
 using System.Text;
 using API.Infrastructure;
 using API.Infrastructure.Email;
-using API.Infrastructure.Identity;
 using API.Infrastructure.Jwt;
-using API.Jobs;
-using API.Models;
+using API.Infrastructure.Scheduler;
 using DAO.Contexts;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,7 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -35,10 +32,7 @@ namespace API
         private readonly IConfiguration _configuration;
 
 
-        public Startup(
-            IWebHostEnvironment env,
-            IConfiguration configuration
-            )
+        public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
         }

@@ -1,18 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DAO.Contexts
 {
     public abstract class DbContextBase : DbContext
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
 
-        public DbContextBase(DbContextOptions options) : base(options) { }
+        protected DbContextBase(DbContextOptions options) : base(options) { }
 
-        public DbContextBase(string connectionString)
+        protected DbContextBase(string connectionString)
         {
             _connectionString = connectionString;
         }

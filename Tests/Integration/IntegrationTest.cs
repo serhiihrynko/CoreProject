@@ -5,13 +5,13 @@ namespace Tests.Integration
 {
     public abstract class IntegrationTest
     {
-        protected readonly HttpClient _client;
+        protected readonly HttpClient Client;
 
-        public IntegrationTest()
+        protected IntegrationTest()
         {
-            WebApplicationFactory<API.Startup> appFactory = new WebApplicationFactory<API.Startup>();
+            var appFactory = new WebApplicationFactory<API.Startup>();
 
-            _client = appFactory.CreateClient();
+            Client = appFactory.CreateClient();
         }
     }
 }

@@ -8,25 +8,25 @@ namespace API.Controllers
     [Authorize]
     public class StatusController : Controller
     {
-        private readonly string message;
+        private readonly string _message;
        
         public StatusController(UptimeService uptimeService)
         {
-            message = $"API is running... (Uptime: {uptimeService.Uptime}, Started at {uptimeService.TimeStarted})";
+            _message = $"API is running... (Uptime: {uptimeService.Uptime}, Started at {uptimeService.TimeStarted})";
         }
 
 
         [HttpGet("authorized")]
         public ActionResult<string> GetStatusAuthorized()
         {
-            return Ok(message);
+            return Ok(_message);
         }
 
         [HttpGet]
         [AllowAnonymous]
         public ActionResult<string> GetStatus()
         {
-            return Ok(message);
+            return Ok(_message);
         }
     }
 }
