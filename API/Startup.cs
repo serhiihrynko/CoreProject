@@ -44,13 +44,12 @@ namespace API
         {
             _services = services;
 
+            services.AddSingleton(new UptimeService());
+
             // Cors
             services.AddCors();
 
-            // Uptime Service
-            services.AddSingleton(new UptimeService());
-
-            //jwt
+            // JWT
             ConfigureServicesJwtAuthentication();
 
             // Identity
@@ -66,18 +65,72 @@ namespace API
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
-            services.AddMvc(options => { options.EnableEndpointRouting = false; })
+            services.AddMvc(options =>
+                {
+                    options.EnableEndpointRouting = false;
+                })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                ConfigureExceptions(app);
+                app.UseHsts();
+            }
+
+            //IdentityInitializer.Initialize(
+            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            //);
+
+            app.UseCors(builder => builder
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+            );
+
+            app.UseAuthentication();
+
+            app.UseMvc();
+        }
+
+        private void ConfigureExceptions(IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(options => options.Run(async context =>
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+
+                var exception = context.Features.Get<IExceptionHandlerFeature>();
+
+                if (exception != null)
+                {
+                    var error = JsonConvert.SerializeObject(new
+                    {
+                        Message = "Internal Server Error.",
+                        context.Response.StatusCode
+                    });
+
+                    await context.Response.WriteAsync(error);
+                }
+            }));
         }
 
         private void ConfigureServicesJwtAuthentication()
         {
-            IConfigurationSection tokenConfigurationSection = _configuration.GetSection("JwtOptions");
-            TokenManagement tokenManagement = tokenConfigurationSection.Get<TokenManagement>();
+            var tokenConfigurationSection = _configuration.GetSection("JwtOptions");
+            var tokenManagement = tokenConfigurationSection.Get<TokenManagement>();
 
-            byte[] securityKey = Encoding.UTF8.GetBytes(tokenManagement.SecurityKey);
+            var securityKey = Encoding.UTF8.GetBytes(tokenManagement.SecurityKey);
 
-            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            var tokenValidationParameters = new TokenValidationParameters
             {
                 IssuerSigningKey = new SymmetricSecurityKey(securityKey),
                 ValidateIssuerSigningKey = true,
@@ -128,61 +181,13 @@ namespace API
             _services.AddSingleton<IJobFactory, JobFactory>();
             _services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 
-            //_services.AddSingleton<>();
+            //_services.AddSingleton<job_class>();
             //_services.AddSingleton(new JobSchedule(
-            //    jobType: typeof(),
-            //    cronExpression: _configuration["Jobs:<taskname>:Schedule"])
+            //    jobType: typeof(job_class),
+            //    cronExpression: _configuration["Jobs:<job_name>:Schedule"])
             //);
 
             _services.AddHostedService<QuartzHostedService>();
-        }
-
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                ConfigureExceptions(app);
-                app.UseHsts();
-            }
-
-            //IdentityInitializer.Initialize(
-            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            //);
-
-            app.UseCors(builder => builder.AllowAnyOrigin());
-
-            app.UseAuthentication();
-
-            app.UseMvc();
-        }
-
-
-        private void ConfigureExceptions(IApplicationBuilder app)
-        {
-            app.UseExceptionHandler(options => options.Run(async context =>
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ContentType = "application/json";
-
-                var exception = context.Features.Get<IExceptionHandlerFeature>();
-
-                if (exception != null)
-                {
-                    var error = JsonConvert.SerializeObject(new
-                    {
-                        Message = "Internal Server Error."
-                    });
-
-                    await context.Response.WriteAsync(error);
-                }
-            }));
         }
     }
 }

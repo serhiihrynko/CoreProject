@@ -16,6 +16,8 @@ namespace API.Infrastructure.Scheduler
         private readonly IJobFactory _jobFactory;
         private readonly IEnumerable<JobSchedule> _jobSchedules;
 
+        private IScheduler Scheduler { get; set; }
+
 
         public QuartzHostedService(
             IConfiguration configuration,
@@ -30,9 +32,6 @@ namespace API.Infrastructure.Scheduler
         }
 
 
-        public IScheduler Scheduler { get; set; }
-
-
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             Scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
@@ -40,10 +39,10 @@ namespace API.Infrastructure.Scheduler
 
             foreach (var jobSchedule in _jobSchedules)
             {
-                IJobDetail job = CreateJob(jobSchedule);
-                ITrigger trigger = CreateTrigger(jobSchedule);
+                var job = CreateJob(jobSchedule);
+                var trigger = CreateTrigger(jobSchedule);
 
-                bool isActive = bool.Parse(_configuration[$"Jobs:{jobSchedule.JobType.Name}:IsActive"]);
+                var isActive = bool.Parse(_configuration[$"Jobs:{jobSchedule.JobType.Name}:IsActive"]);
 
                 if (isActive)
                 {
@@ -57,8 +56,9 @@ namespace API.Infrastructure.Scheduler
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await Scheduler?.Shutdown(cancellationToken);
+            await Scheduler.Shutdown(cancellationToken);
         }
+
 
         private static IJobDetail CreateJob(JobSchedule schedule)
         {
