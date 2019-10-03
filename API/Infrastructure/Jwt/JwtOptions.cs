@@ -1,6 +1,6 @@
 ﻿namespace API.Infrastructure.Jwt
 {
-    public class TokenManagement
+    public class JwtOptions
     {
         public string SecurityKey { get; set; }
 

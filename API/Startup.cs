@@ -126,9 +126,12 @@ namespace API
         private void ConfigureServicesJwtAuthentication()
         {
             var tokenConfigurationSection = _configuration.GetSection("JwtOptions");
-            var tokenManagement = tokenConfigurationSection.Get<TokenManagement>();
+            var tokenOptions = tokenConfigurationSection.Get<JwtOptions>();
 
-            var securityKey = Encoding.UTF8.GetBytes(tokenManagement.SecurityKey);
+            _services.Configure<JwtOptions>(tokenConfigurationSection);
+            _services.AddSingleton<IJwtFactory, JwtFactory>();
+
+            var securityKey = Encoding.UTF8.GetBytes(tokenOptions.SecurityKey);
 
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -139,8 +142,6 @@ namespace API
                 ValidateIssuer = false,
                 ValidateAudience = false
             };
-
-            _services.Configure<TokenManagement>(tokenConfigurationSection);
 
             _services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

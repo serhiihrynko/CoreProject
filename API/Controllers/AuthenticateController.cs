@@ -1,14 +1,8 @@
 ﻿using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 using API.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.Extensions.Options;
 using API.Infrastructure.Jwt;
 
 namespace API.Controllers
@@ -17,14 +11,14 @@ namespace API.Controllers
     public class AuthenticateController : Controller
     {
         private readonly UserManager<User> _userManager;
-        private readonly TokenManagement _tokenManagement;
+        private readonly IJwtFactory _jwtFactory;
 
         public AuthenticateController(
             UserManager<User> userManager,
-            IOptions<TokenManagement> tokenManagementOptions)
+            IJwtFactory jwtFactory)
         {
             _userManager = userManager;
-            _tokenManagement = tokenManagementOptions.Value;
+            _jwtFactory = jwtFactory;
         }
 
         [HttpPost]
@@ -38,27 +32,9 @@ namespace API.Controllers
                 return BadRequest("Invalid email or password.");
             }
 
-            var authClaims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+            var result = _jwtFactory.GetJwt(user);
 
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenManagement.SecurityKey));
-
-            var token = new JwtSecurityToken(
-                //issuer: "",
-                //audience: "",
-                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(_tokenManagement.Expires)),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-            );
-
-            return Ok(new
-            {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = new DateTimeOffset(token.ValidTo, TimeSpan.Zero).ToUnixTimeSeconds() // timestamp
-            });
+            return Ok(result);
         }
     }
 }
