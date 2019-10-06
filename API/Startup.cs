@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
@@ -70,6 +71,12 @@ namespace API
                     options.EnableEndpointRouting = false;
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+
+            // Swashbuckle
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "CoreProject", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,6 +106,14 @@ namespace API
             app.UseAuthentication();
 
             app.UseMvc();
+
+            // Swashbuckle
+            app.UseSwagger();
+            app.UseSwaggerUI(x =>
+            {
+                x.SwaggerEndpoint("/swagger/v1/swagger.json", "CoreProject v1");
+                x.RoutePrefix = string.Empty;
+            });
         }
 
         private void ConfigureExceptions(IApplicationBuilder app)

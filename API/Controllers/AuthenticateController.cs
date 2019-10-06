@@ -21,10 +21,18 @@ namespace API.Controllers
             _jwtFactory = jwtFactory;
         }
 
+
         [HttpPost]
         [Route("login")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid email or password.");
+            }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if ((user == null) || (!await _userManager.CheckPasswordAsync(user, model.Password)))

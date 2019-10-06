@@ -1,10 +1,11 @@
 ﻿using API.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace API.Controllers
 {
-    [Route("")]
+    [Route("[controller]")]
     [Authorize]
     public class StatusController : Controller
     {
@@ -17,6 +18,8 @@ namespace API.Controllers
 
 
         [HttpGet("authorized")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
         public ActionResult<string> GetStatusAuthorized()
         {
             return Ok(_message);
@@ -24,6 +27,7 @@ namespace API.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [ProducesResponseType(200)]
         public ActionResult<string> GetStatus()
         {
             return Ok(_message);

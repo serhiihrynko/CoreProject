@@ -5,6 +5,7 @@ namespace API.Models
     public class CreateUserModel
     {
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]

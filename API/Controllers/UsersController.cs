@@ -22,6 +22,8 @@ namespace API.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Create([FromBody]CreateUserModel model)
         {
             if (ModelState.IsValid)
