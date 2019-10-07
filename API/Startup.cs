@@ -66,7 +66,8 @@ namespace API
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
-            services.AddMvc(options =>
+            services
+                .AddMvc(options =>
                 {
                     options.EnableEndpointRouting = false;
                 })
@@ -109,12 +110,13 @@ namespace API
 
             // Swashbuckle
             app.UseSwagger();
-            app.UseSwaggerUI(x =>
+            app.UseSwaggerUI(options =>
             {
-                x.SwaggerEndpoint("/swagger/v1/swagger.json", "CoreProject v1");
-                x.RoutePrefix = string.Empty;
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "CoreProject v1");
+                options.RoutePrefix = string.Empty;
             });
         }
+
 
         private void ConfigureExceptions(IApplicationBuilder app)
         {
@@ -160,25 +162,25 @@ namespace API
 
             _services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(x =>
+                .AddJwtBearer(options =>
                 {
-                    x.RequireHttpsMetadata = false;
-                    x.SaveToken = true;
-                    x.TokenValidationParameters = tokenValidationParameters;
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = tokenValidationParameters;
                 });
         }
 
         private void ConfigureServicesIdentity()
         {
             _services
-                .AddIdentityCore<User>(x =>
+                .AddIdentityCore<User>(options =>
                 {
                     // Configure Identity password options
-                    x.Password.RequireDigit = true;
-                    x.Password.RequireLowercase = true;
-                    x.Password.RequireUppercase = true;
-                    x.Password.RequireNonAlphanumeric = true;
-                    x.Password.RequiredLength = 8;
+                    options.Password.RequireDigit = true;
+                    options.Password.RequireLowercase = true;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireNonAlphanumeric = true;
+                    options.Password.RequiredLength = 8;
                 })
                 .AddEntityFrameworkStores<DbContextIdentity>()
                 .AddDefaultTokenProviders();
