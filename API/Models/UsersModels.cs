@@ -14,4 +14,9 @@ namespace API.Models
         [Required]
         public string UserName { get; set; }
     }
+
+    public class CreateUserResponse
+    {
+        public string UserId { get; set; }
+    }
 }

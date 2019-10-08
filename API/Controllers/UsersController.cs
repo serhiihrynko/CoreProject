@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using API.Extensions;
 using API.Models;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -13,10 +14,14 @@ namespace API.Controllers
     public class UsersController : Controller
     {
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public UsersController(UserManager<User> userManager)
+        public UsersController(
+            UserManager<User> userManager, 
+            IMapper mapper)
         {
             _userManager = userManager;
+            _mapper = mapper;
         }
 
 
@@ -38,7 +43,7 @@ namespace API.Controllers
 
                 if (result.Succeeded)
                 {
-                    return Ok(new { UserId = user.Id });
+                    return Ok(_mapper.Map<CreateUserResponse>(user));
                 }
 
                 ModelState.AddErrorsToModelState(result.Errors);

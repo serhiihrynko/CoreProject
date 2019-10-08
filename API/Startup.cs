@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Net;
 using System.Text;
 using API.Infrastructure;
@@ -24,6 +25,7 @@ using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
+using API.Infrastructure.Automapper;
 
 namespace API
 {
@@ -66,10 +68,18 @@ namespace API
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
+            // AutoMapper
+            services.AddAutoMapper(typeof(AutoMapperProfile));
+
+            // Mvc
             services
                 .AddMvc(options =>
                 {
                     options.EnableEndpointRouting = false;
+                })
+                .AddJsonOptions(options =>
+                {
+                    //options.JsonSerializerOptions.IgnoreNullValues = true;
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
