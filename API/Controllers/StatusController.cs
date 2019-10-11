@@ -1,23 +1,30 @@
 ﻿using API.Infrastructure;
+using API.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 
 namespace API.Controllers
 {
     [Route("[controller]")]
-    [Authorize]
     public class StatusController : Controller
     {
         private readonly string _message;
-       
+
         public StatusController(UptimeService uptimeService)
         {
             _message = $"API is running... (Uptime: {uptimeService.Uptime}, Started at {uptimeService.TimeStarted})";
         }
 
 
+        [HttpGet]
+        [ProducesResponseType(200)]
+        public ActionResult<string> GetStatus()
+        {
+            return Ok(_message);
+        }
+
         [HttpGet("authorized")]
+        [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         public ActionResult<string> GetStatusAuthorized()
@@ -25,10 +32,12 @@ namespace API.Controllers
             return Ok(_message);
         }
 
-        [HttpGet]
-        [AllowAnonymous]
+        [HttpGet("authorized/admin")]
+        [Authorize(Roles = RoleConstants.Admin)]
         [ProducesResponseType(200)]
-        public ActionResult<string> GetStatus()
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        public ActionResult<string> GetStatusAuthorizeAdmin()
         {
             return Ok(_message);
         }

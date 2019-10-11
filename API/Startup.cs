@@ -26,6 +26,8 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 using API.Infrastructure.Automapper;
+using API.Models;
+using API.Infrastructure.Identity;
 
 namespace API
 {
@@ -103,10 +105,10 @@ namespace API
                 app.UseHsts();
             }
 
-            //IdentityInitializer.Initialize(
-            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            //);
+            IdentityInitializer.Initialize(
+                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            ).Wait();
 
             app.UseCors(builder => builder
                 .AllowAnyOrigin()
@@ -128,28 +130,6 @@ namespace API
         }
 
 
-        private void ConfigureExceptions(IApplicationBuilder app)
-        {
-            app.UseExceptionHandler(options => options.Run(async context =>
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ContentType = "application/json";
-
-                var exception = context.Features.Get<IExceptionHandlerFeature>();
-
-                if (exception != null)
-                {
-                    var error = JsonConvert.SerializeObject(new
-                    {
-                        Message = "Internal Server Error.",
-                        context.Response.StatusCode
-                    });
-
-                    await context.Response.WriteAsync(error);
-                }
-            }));
-        }
-
         private void ConfigureServicesJwtAuthentication()
         {
             var tokenConfigurationSection = _configuration.GetSection("JwtOptions");
@@ -167,11 +147,16 @@ namespace API
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
                 ValidateIssuer = false,
-                ValidateAudience = false
+                ValidateAudience = false,
             };
 
             _services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
                     options.RequireHttpsMetadata = false;
@@ -192,6 +177,7 @@ namespace API
                     options.Password.RequireNonAlphanumeric = true;
                     options.Password.RequiredLength = 8;
                 })
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DbContextIdentity>()
                 .AddDefaultTokenProviders();
         }
@@ -216,6 +202,28 @@ namespace API
             //);
 
             _services.AddHostedService<QuartzHostedService>();
+        }
+
+        private void ConfigureExceptions(IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(options => options.Run(async context =>
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+
+                var exception = context.Features.Get<IExceptionHandlerFeature>();
+
+                if (exception != null)
+                {
+                    var error = JsonConvert.SerializeObject(new
+                    {
+                        Message = "Internal Server Error.",
+                        context.Response.StatusCode
+                    });
+
+                    await context.Response.WriteAsync(error);
+                }
+            }));
         }
     }
 }
