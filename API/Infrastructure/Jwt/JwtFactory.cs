@@ -27,13 +27,13 @@ namespace API.Infrastructure.Jwt
             var encodedToken = new JwtSecurityTokenHandler().WriteToken(token);
             var expiration = new DateTimeOffset(token.ValidTo, TimeSpan.Zero).ToUnixTimeSeconds(); // timestamp
 
-            var result = new JwtResult()
+            var jwtResult = new JwtResult()
             {
                 EncodedToken = encodedToken,
                 Expiration = expiration
             };
 
-            return result;
+            return jwtResult;
         }
 
 
@@ -57,10 +57,11 @@ namespace API.Infrastructure.Jwt
         private IEnumerable<Claim> GenerateClaims(User user, IEnumerable<string> userRoles)
         {
             var claims = new List<Claim>() {
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNamesCustom.Id, user.Id)
             };
 
-            claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(userRoles.Select(role => new Claim(JwtRegisteredClaimNamesCustom.Role, role)));
 
             return claims;
         }

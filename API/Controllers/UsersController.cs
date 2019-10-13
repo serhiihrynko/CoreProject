@@ -5,23 +5,26 @@ using System.Threading.Tasks;
 using API.Extensions;
 using API.Models;
 using API.Infrastructure.Identity;
+using AutoMapper;
 
 namespace API.Controllers
 {
-    [Route("[controller]")]
+    [Route("users")]
     public class UsersController : Controller
     {
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public UsersController(UserManager<User> userManager)
+        public UsersController(
+            UserManager<User> userManager,
+            IMapper mapper)
         {
             _userManager = userManager;
+            _mapper = mapper;
         }
 
 
         [HttpPost]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
         public async Task<IActionResult> Create([FromBody]CreateUserModel model)
         {
             if (ModelState.IsValid)
@@ -40,11 +43,7 @@ namespace API.Controllers
 
                     if (setRole.Succeeded)
                     {
-                        return Ok(new
-                        {
-                            UserId = user.Id,
-                            Role = RoleConstants.User
-                        });
+                        return Ok(_mapper.Map<CreateUserResponse>(user));
                     }
 
                     ModelState.AddErrorsToModelState(setRole.Errors);

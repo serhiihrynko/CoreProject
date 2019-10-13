@@ -7,7 +7,7 @@ using API.Infrastructure.Jwt;
 
 namespace API.Controllers
 {
-    [Route("[controller]")]
+    [Route("authenticate")]
     public class AuthenticateController : Controller
     {
         private readonly UserManager<User> _userManager;

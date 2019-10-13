@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Route("[controller]")]
+    [Route("status")]
     public class StatusController : Controller
     {
         private readonly string _message;
@@ -18,28 +18,19 @@ namespace API.Controllers
 
         [HttpGet]
         [ProducesResponseType(200)]
-        public ActionResult<string> GetStatus()
-        {
-            return Ok(_message);
-        }
+        public string GetStatus() => _message;
 
         [HttpGet("authorized")]
         [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
-        public ActionResult<string> GetStatusAuthorized()
-        {
-            return Ok(_message);
-        }
+        public string GetStatusAuthorized() => _message;
 
         [HttpGet("authorized/admin")]
         [Authorize(Roles = RoleConstants.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
-        public ActionResult<string> GetStatusAuthorizeAdmin()
-        {
-            return Ok(_message);
-        }
+        public string GetStatusAuthorizeAdmin() => _message;
     }
 }
