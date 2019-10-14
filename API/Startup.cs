@@ -24,10 +24,7 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 using API.Infrastructure.Automapper;
-using API.Models;
-using API.Infrastructure.Identity;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace API
 {
@@ -88,11 +85,10 @@ namespace API
                 .AddNewtonsoftJson()
                 .AddApiExplorer()
                 .AddAuthorization()
-                .AddFormatterMappings();
-            //.AddCacheTagHelper()
-            //.AddDataAnnotations()
-            //.AddCors()
-            //.SetCompatibilityVersion(CompatibilityVersion.Version_3_0); 
+                .AddFormatterMappings()
+                //.AddCacheTagHelper()
+                //.AddDataAnnotations()
+                .AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -108,10 +104,10 @@ namespace API
                 options.RoutePrefix = string.Empty;
             });
 
-            IdentityInitializer.Initialize(
-                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            ).Wait();
+            //IdentityInitializer.Initialize(
+            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            //).Wait();
 
             if (env.IsDevelopment())
             {
@@ -123,11 +119,11 @@ namespace API
                 app.UseHsts();
             }
 
-            //app.UseCors(builder => builder
-            //    .AllowAnyOrigin()
-            //    .AllowAnyHeader()
-            //    .AllowAnyMethod()
-            //);
+            app.UseCors(builder => builder
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+            );
 
             app.UseAuthentication();
 
