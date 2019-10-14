@@ -14,13 +14,11 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
@@ -28,6 +26,8 @@ using Quartz.Spi;
 using API.Infrastructure.Automapper;
 using API.Models;
 using API.Infrastructure.Identity;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API
 {
@@ -48,6 +48,12 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             _services = services;
+
+            // Swashbuckle
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApsNetCoreProject", Version = "v1" });
+            });
 
             services.AddSingleton(new UptimeService());
 
@@ -73,28 +79,40 @@ namespace API
             // AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));
 
-            // Mvc
+            // Mvc        
             services
-                .AddMvc(options =>
+                .AddMvcCore(options =>
                 {
                     options.EnableEndpointRouting = false;
                 })
-                .AddJsonOptions(options =>
-                {
-                    //options.JsonSerializerOptions.IgnoreNullValues = true;
-                })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-
-            // Swashbuckle
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "CoreProject", Version = "v1" });
-            });
+                .AddNewtonsoftJson()
+                .AddApiExplorer()
+                .AddAuthorization()
+                .AddFormatterMappings();
+            //.AddCacheTagHelper()
+            //.AddDataAnnotations()
+            //.AddCors()
+            //.SetCompatibilityVersion(CompatibilityVersion.Version_3_0); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseStaticFiles();
+
+            // Swashbuckle
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "ApsNetCoreProject v1");
+                options.RoutePrefix = string.Empty;
+            });
+
+            IdentityInitializer.Initialize(
+                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            ).Wait();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -105,28 +123,15 @@ namespace API
                 app.UseHsts();
             }
 
-            IdentityInitializer.Initialize(
-                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            ).Wait();
-
-            app.UseCors(builder => builder
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-            );
+            //app.UseCors(builder => builder
+            //    .AllowAnyOrigin()
+            //    .AllowAnyHeader()
+            //    .AllowAnyMethod()
+            //);
 
             app.UseAuthentication();
 
             app.UseMvc();
-
-            // Swashbuckle
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "CoreProject v1");
-                options.RoutePrefix = string.Empty;
-            });
         }
 
 

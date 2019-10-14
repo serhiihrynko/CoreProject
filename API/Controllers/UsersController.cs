@@ -10,7 +10,7 @@ using AutoMapper;
 namespace API.Controllers
 {
     [Route("users")]
-    public class UsersController : Controller
+    public class UsersController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
@@ -25,6 +25,8 @@ namespace API.Controllers
 
 
         [HttpPost]
+        [ProducesResponseType(typeof(CreateUserResponse), 200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Create([FromBody]CreateUserModel model)
         {
             if (ModelState.IsValid)

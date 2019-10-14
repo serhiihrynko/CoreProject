@@ -8,7 +8,7 @@ using API.Infrastructure.Jwt;
 namespace API.Controllers
 {
     [Route("authenticate")]
-    public class AuthenticateController : Controller
+    public class AuthenticateController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
         private readonly IJwtFactory _jwtFactory;
@@ -24,7 +24,7 @@ namespace API.Controllers
 
         [HttpPost]
         [Route("login")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(JwtResult), 200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {

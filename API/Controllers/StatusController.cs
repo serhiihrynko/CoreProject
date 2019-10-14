@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [Route("status")]
-    public class StatusController : Controller
+    public class StatusController : ControllerBase
     {
         private readonly string _message;
 
