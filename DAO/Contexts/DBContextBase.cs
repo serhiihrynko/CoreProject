@@ -7,7 +7,10 @@ namespace DAO.Contexts
         private readonly string _connectionString;
 
 
-        protected DbContextBase(DbContextOptions options) : base(options) { }
+        protected DbContextBase(DbContextOptions options) 
+            : base(options) 
+        {
+        }
 
         protected DbContextBase(string connectionString)
         {
