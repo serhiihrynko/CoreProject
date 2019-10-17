@@ -40,7 +40,7 @@ namespace API.Infrastructure.Identity
                 var user = new User()
                 {
                     Email = model.Email,
-                    UserName = model.UserName
+                    UserName = model.UserName ?? model.Email
                 };
 
                 var createUser = await userManager.CreateAsync(user, model.Password);

@@ -34,7 +34,7 @@ namespace API.Controllers
                 var user = new User()
                 {
                     Email = model.Email,
-                    UserName = model.UserName
+                    UserName = model.UserName ?? model.Email
                 };
 
                 var createUser = await _userManager.CreateAsync(user, model.Password);

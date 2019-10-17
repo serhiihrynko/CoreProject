@@ -25,6 +25,8 @@ using Quartz.Impl;
 using Quartz.Spi;
 using API.Infrastructure.Automapper;
 using Microsoft.OpenApi.Models;
+using API.Infrastructure.Identity;
+using API.Models;
 
 namespace API
 {
@@ -104,10 +106,10 @@ namespace API
                 options.RoutePrefix = string.Empty;
             });
 
-            //IdentityInitializer.Initialize(
-            //    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-            //    _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            //).Wait();
+            IdentityInitializer.Initialize(
+                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            ).Wait();
 
             if (env.IsDevelopment())
             {
@@ -177,6 +179,7 @@ namespace API
                     options.Password.RequireUppercase = true;
                     options.Password.RequireNonAlphanumeric = true;
                     options.Password.RequiredLength = 8;
+                    options.User.RequireUniqueEmail = true;
                 })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DbContextIdentity>()
