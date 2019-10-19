@@ -2,7 +2,7 @@
 {
     public struct JwtRegisteredClaimNamesCustom
     {
-        public const string Role = "role";
-        public const string Id = "id";
+        public const string UserId = "userId";
+        //public const string Role = "role";
     }
 }

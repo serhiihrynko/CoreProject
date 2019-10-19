@@ -7,7 +7,7 @@ namespace Tests.Integration
     public abstract class IntegrationTest : IClassFixture<WebApplicationFactory<API.Startup>>
     {
         protected readonly HttpClient _httpclient;
-        protected readonly WebApplicationFactory<API.Startup> _webAppFactory;
+        private readonly WebApplicationFactory<API.Startup> _webAppFactory;
 
         protected IntegrationTest(WebApplicationFactory<API.Startup> factory)
         {

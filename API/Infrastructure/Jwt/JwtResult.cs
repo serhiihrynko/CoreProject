@@ -2,7 +2,8 @@
 {
     public class JwtResult
     {
-        public string EncodedToken { get; set; }
+        public string Token { get; set; }
+
         public long Expiration { get; set; }
     }
 }

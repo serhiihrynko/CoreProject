@@ -27,6 +27,7 @@ using API.Infrastructure.Automapper;
 using Microsoft.OpenApi.Models;
 using API.Infrastructure.Identity;
 using API.Models;
+using API.Extensions;
 
 namespace API
 {
@@ -88,15 +89,22 @@ namespace API
                 .AddApiExplorer()
                 .AddAuthorization()
                 .AddFormatterMappings()
-                //.AddCacheTagHelper()
-                //.AddDataAnnotations()
                 .AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseStaticFiles();
+            ConfigureExceptions(app);
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseHsts();
+            }
 
             // Swashbuckle
             app.UseSwagger();
@@ -111,16 +119,6 @@ namespace API
                 _configuration.GetSection("Identity:User").Get<CreateUserModel>()
             ).Wait();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                ConfigureExceptions(app);
-                app.UseHsts();
-            }
-
             app.UseCors(builder => builder
                 .AllowAnyOrigin()
                 .AllowAnyHeader()
@@ -128,6 +126,8 @@ namespace API
             );
 
             app.UseAuthentication();
+
+            app.UseRoleProvider();
 
             app.UseMvc();
         }

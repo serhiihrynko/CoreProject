@@ -5,6 +5,6 @@ namespace API.Infrastructure.Jwt
 {
     public interface IJwtFactory
     {
-        JwtResult GetJwt(User user, IEnumerable<string> userRoles);
+        JwtResult GenerateToken(string userId);
     }
 }

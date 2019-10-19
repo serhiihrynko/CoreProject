@@ -19,7 +19,6 @@ namespace API
             {
                 CreateHostBuilder(args).Build().Run();
                 return;
-
             } catch(Exception ex)
             {
                 Log.Fatal(ex, "Host terminated unexpectedly");

@@ -20,16 +20,16 @@ namespace API.Infrastructure.Jwt
         }
 
 
-        public JwtResult GetJwt(User user, IEnumerable<string> userRoles)
+        public JwtResult GenerateToken(string userId)
         {
-            var token = GenerateToken(user, userRoles);
+            var token = Create(userId);
 
             var encodedToken = new JwtSecurityTokenHandler().WriteToken(token);
             var expiration = new DateTimeOffset(token.ValidTo, TimeSpan.Zero).ToUnixTimeSeconds(); // timestamp
 
             var jwtResult = new JwtResult()
             {
-                EncodedToken = encodedToken,
+                Token = encodedToken,
                 Expiration = expiration
             };
 
@@ -37,9 +37,9 @@ namespace API.Infrastructure.Jwt
         }
 
 
-        private  JwtSecurityToken GenerateToken(User user, IEnumerable<string> userRoles)
+        private JwtSecurityToken Create(string userId)
         {
-            var claims = GenerateClaims(user, userRoles);
+            var claims = new Claim[] { new Claim(JwtRegisteredClaimNamesCustom.UserId, userId) };
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey));
 
@@ -52,18 +52,6 @@ namespace API.Infrastructure.Jwt
             );
 
             return token;
-        }
-
-        private IEnumerable<Claim> GenerateClaims(User user, IEnumerable<string> userRoles)
-        {
-            var claims = new List<Claim>() {
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNamesCustom.Id, user.Id)
-            };
-
-            claims.AddRange(userRoles.Select(role => new Claim(JwtRegisteredClaimNamesCustom.Role, role)));
-
-            return claims;
         }
     }
 }

@@ -40,9 +40,7 @@ namespace API.Controllers
                 return BadRequest("Invalid email or password.");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            var result = _jwtFactory.GetJwt(user, userRoles);
+            var result = _jwtFactory.GenerateToken(user.Id);
 
             return Ok(result);
         }
