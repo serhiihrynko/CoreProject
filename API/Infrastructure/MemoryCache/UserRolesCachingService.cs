@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace API.Infrastructure.MemoryCache
 {
-    public class UserRolesCachingService
+    public class UserRolesCachingService : IUserRolesCachingService
     {
         private readonly IMemoryCache _cache;
         private readonly IServiceProvider _serviceProvider;
 
         public UserRolesCachingService(IServiceProvider serviceProvider, IMemoryCache cache)
         {
-            _cache = cache;
             _serviceProvider = serviceProvider;
+            _cache = cache;
         }
 
 
@@ -25,21 +25,18 @@ namespace API.Infrastructure.MemoryCache
         {
             IEnumerable<string> userRoles = null;
 
-            if (!_cache.TryGetValue(userId, out userRoles))
+            using (var serviceScope = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                using (var serviceScope = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
-                {
-                    var userManager = serviceScope.ServiceProvider.GetService<UserManager<User>>();
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
+                if (!_cache.TryGetValue(userId, out userRoles))
+                {
                     var user = await userManager.FindByIdAsync(userId);
                     userRoles = await userManager.GetRolesAsync(user);
                 }
-
-                if (userRoles != null)
-                {
-                    _cache.Set(userId, userRoles);
-                }
             }
+
+            _cache.Set(userId, userRoles);
 
             return userRoles;
         }

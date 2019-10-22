@@ -68,13 +68,12 @@ namespace API
 
             ConfigureServicesScheduledJobs();
 
+            services.AddSingleton(new UptimeService());
+            services.AddSingleton<IUserRolesCachingService, UserRolesCachingService>();
+
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
-            services.AddSingleton(new UptimeService());
-
-            services.AddTransient<UserRolesCachingService>();
-            
             services
                 .AddMvcCore(options =>
                 {
@@ -107,11 +106,6 @@ namespace API
                 options.RoutePrefix = string.Empty;
             });
 
-            IdentityInitializer.Initialize(
-                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
-                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            ).Wait();
-
             app.UseCors(builder => builder
                 .AllowAnyOrigin()
                 .AllowAnyHeader()
@@ -123,6 +117,11 @@ namespace API
             app.UseRoleProvider();
 
             app.UseMvc();
+
+            IdentityInitializer.Initialize(
+                app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
+                _configuration.GetSection("Identity:User").Get<CreateUserModel>()
+            ).Wait();
         }
 
 

@@ -14,9 +14,11 @@ namespace API.Middlewares
     public class RoleProviderMiddleware
     {
         private readonly RequestDelegate _requestDelegate;
-        private readonly UserRolesCachingService _userRolesCache;
+        private readonly IUserRolesCachingService _userRolesCache;
 
-        public RoleProviderMiddleware(RequestDelegate requestDelegate, UserRolesCachingService userRolesCache)
+        public RoleProviderMiddleware(
+            RequestDelegate requestDelegate, 
+            IUserRolesCachingService userRolesCache)
         {
             _requestDelegate = requestDelegate;
             _userRolesCache = userRolesCache;
@@ -33,7 +35,8 @@ namespace API.Middlewares
 
                 if (userRoles != null)
                 {
-                    (httpContext.User.Identity as ClaimsIdentity).AddClaims(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+                    IEnumerable<Claim> claims = userRoles.Select(role => new Claim(ClaimTypes.Role, role));
+                    (httpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
                 } 
             }
 
