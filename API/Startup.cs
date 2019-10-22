@@ -28,6 +28,7 @@ using Microsoft.OpenApi.Models;
 using API.Infrastructure.Identity;
 using API.Models;
 using API.Extensions;
+using API.Infrastructure.MemoryCache;
 
 namespace API
 {
@@ -49,37 +50,31 @@ namespace API
         {
             _services = services;
 
-            // Swashbuckle
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApsNetCoreProject", Version = "v1" });
             });
 
-            services.AddSingleton(new UptimeService());
+            services.AddAutoMapper(typeof(AutoMapperProfile));
 
-            // Cors
             services.AddCors();
+            services.AddMemoryCache();
 
-            // JWT
             ConfigureServicesJwtAuthentication();
 
-            // Identity
             ConfigureServicesIdentity();
 
-            // Contexts
             ConfigureServicesDbContexts();
 
-            // Jobs
             ConfigureServicesScheduledJobs();
 
-            // Email Service
             services.Configure<EmailConfig>(_configuration.GetSection("Email"));
             services.AddTransient<IEmailService, EmailService>();
 
-            // AutoMapper
-            services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddSingleton(new UptimeService());
 
-            // Mvc        
+            services.AddTransient<UserRolesCachingService>();
+            
             services
                 .AddMvcCore(options =>
                 {
@@ -105,7 +100,6 @@ namespace API
                 app.UseHsts();
             }
 
-            // Swashbuckle
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {

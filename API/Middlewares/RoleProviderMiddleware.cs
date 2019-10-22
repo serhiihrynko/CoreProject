@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Extensions;
+using API.Infrastructure.MemoryCache;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -13,32 +14,27 @@ namespace API.Middlewares
     public class RoleProviderMiddleware
     {
         private readonly RequestDelegate _requestDelegate;
+        private readonly UserRolesCachingService _userRolesCache;
 
-        public RoleProviderMiddleware(RequestDelegate requestDelegate)
+        public RoleProviderMiddleware(RequestDelegate requestDelegate, UserRolesCachingService userRolesCache)
         {
             _requestDelegate = requestDelegate;
+            _userRolesCache = userRolesCache;
         }
 
 
-        public async Task Invoke(HttpContext httpContext, UserManager<User> userManager)
+        public async Task Invoke(HttpContext httpContext)
         {
-            var authenticateResult = await httpContext.AuthenticateAsync("Bearer");
-
-            if (authenticateResult.Succeeded)
+            if (httpContext.User.Identity.IsAuthenticated)
             {
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(authenticateResult.Principal.Identity));
-               
-                var userId = principal.GetUserId();
+                var userId = httpContext.User.GetUserId();
 
-                // TODO: need refactor, too many calls DB
+                IEnumerable<string> userRoles = await _userRolesCache.GetUserRolesAsync(userId);
 
-                var user = await userManager.FindByIdAsync(userId);
-                IEnumerable<string> userRoles = await userManager.GetRolesAsync(user);
-                (principal.Identity as ClaimsIdentity).AddClaims(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-                //
-
-                httpContext.User = principal;
+                if (userRoles != null)
+                {
+                    (httpContext.User.Identity as ClaimsIdentity).AddClaims(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+                } 
             }
 
             await _requestDelegate.Invoke(httpContext);
