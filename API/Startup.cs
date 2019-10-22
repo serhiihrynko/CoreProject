@@ -88,8 +88,7 @@ namespace API
                 .AddNewtonsoftJson()
                 .AddApiExplorer()
                 .AddAuthorization()
-                .AddFormatterMappings()
-                .AddCors();
+                .AddFormatterMappings();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
