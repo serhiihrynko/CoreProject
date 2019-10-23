@@ -60,14 +60,6 @@ namespace API
             services.AddCors();
             services.AddMemoryCache();
 
-            ConfigureServicesJwtAuthentication();
-
-            ConfigureServicesIdentity();
-
-            ConfigureServicesDbContexts();
-
-            ConfigureServicesScheduledJobs();
-
             services.AddSingleton(new UptimeService());
             services.AddSingleton<IUserRolesCachingService, UserRolesCachingService>();
 
@@ -75,14 +67,19 @@ namespace API
             services.AddTransient<IEmailService, EmailService>();
 
             services
-                .AddMvcCore(options =>
-                {
-                    options.EnableEndpointRouting = false;
-                })
+                .AddMvcCore(options => options.EnableEndpointRouting = false)
                 .AddNewtonsoftJson()
                 .AddApiExplorer()
                 .AddAuthorization()
                 .AddFormatterMappings();
+
+            ConfigureServicesJwtAuthentication();
+
+            ConfigureServicesIdentity();
+
+            ConfigureServicesDbContexts();
+
+            ConfigureServicesScheduledJobs();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
