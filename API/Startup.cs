@@ -88,13 +88,11 @@ namespace API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            ConfigureExceptions(app);
+            var isDevelopment = env.IsDevelopment();
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            ConfigureExceptions(app, isDevelopment);
+
+            if (!isDevelopment)
             {
                 app.UseHsts();
             }
@@ -200,26 +198,42 @@ namespace API
             _services.AddHostedService<QuartzHostedService>();
         }
 
-        private void ConfigureExceptions(IApplicationBuilder app)
+        private void ConfigureExceptions(IApplicationBuilder app, bool isDevelopment)
         {
             app.UseExceptionHandler(options => options.Run(async context =>
             {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                int statusCode = (int)HttpStatusCode.InternalServerError;
+
+                context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";
 
                 var exception = context.Features.Get<IExceptionHandlerFeature>();
 
                 if (exception != null)
                 {
-                    var error = JsonConvert.SerializeObject(new
-                    {
-                        Message = "Internal Server Error.",
-                        context.Response.StatusCode
-                    });
+                    var error = CreateErrorDescription(exception, statusCode, isDevelopment);
 
                     await context.Response.WriteAsync(error);
                 }
             }));
+
+            string CreateErrorDescription(IExceptionHandlerFeature ex, int code, bool isDevelopment)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    code,
+                    message = isDevelopment
+                        ? (
+                            $"{ex.Error.Message}\r\n" +
+                            $"{ex.Error.InnerException?.Message}\r\n" +
+                            $"{ex.Error.InnerException?.InnerException?.Message}"
+                        )
+                        : "Internal Server Error",
+                    description = !isDevelopment
+                        ? ex.Error.ToString()
+                        : null
+                }); ;
+            }
         }
     }
 }
