@@ -23,20 +23,16 @@ namespace API.Infrastructure.MemoryCache
 
         public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
         {
-            IEnumerable<string> userRoles = null;
-
-            using (var serviceScope = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            if (!_cache.TryGetValue(userId, out IEnumerable<string> userRoles))
             {
+                using var serviceScope = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-                if (!_cache.TryGetValue(userId, out userRoles))
-                {
-                    var user = await userManager.FindByIdAsync(userId);
-                    userRoles = await userManager.GetRolesAsync(user);
-                }
-            }
+                var user = await userManager.FindByIdAsync(userId);
+                userRoles = await userManager.GetRolesAsync(user);
 
-            _cache.Set(userId, userRoles);
+                _cache.Set(userId, userRoles);
+            }
 
             return userRoles;
         }

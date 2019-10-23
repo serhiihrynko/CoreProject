@@ -4,10 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Extensions;
 using API.Infrastructure.MemoryCache;
-using Domain.Entities;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 
 namespace API.Middlewares
 {
@@ -33,7 +30,7 @@ namespace API.Middlewares
 
                 IEnumerable<string> userRoles = await _userRolesCache.GetUserRolesAsync(userId);
 
-                if (userRoles != null)
+                if ((userRoles != null) && (userRoles.Count() > 0))
                 {
                     IEnumerable<Claim> claims = userRoles.Select(role => new Claim(ClaimTypes.Role, role));
                     (httpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
