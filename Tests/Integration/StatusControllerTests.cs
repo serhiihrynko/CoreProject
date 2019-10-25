@@ -23,7 +23,7 @@ namespace Tests.Integration
             string message = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            response.EnsureSuccessStatusCode();
             Assert.False(string.IsNullOrEmpty(message));
         }
     }
