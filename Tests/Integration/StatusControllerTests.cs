@@ -13,13 +13,14 @@ namespace Tests.Integration
         }
 
 
-        [Fact]
-        public async Task GetStatusReturnsUptime()
+        [Theory]
+        [InlineData("/status")]
+        public async Task GetStatusReturnsUptime(string url)
         {
             // Arrange
 
             // Act
-            var response = await _httpclient.GetAsync("/status");
+            var response = await _httpclient.GetAsync(url);
             string message = await response.Content.ReadAsStringAsync();
 
             // Assert
