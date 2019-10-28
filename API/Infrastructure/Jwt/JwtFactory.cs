@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -39,7 +36,7 @@ namespace API.Infrastructure.Jwt
 
         private JwtSecurityToken Create(string userId)
         {
-            var claims = new Claim[] { new Claim(JwtRegisteredClaimNamesCustom.UserId, userId) };
+            var claims = new Claim[] {new Claim(JwtRegisteredClaimNamesCustom.UserId, userId)};
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenOptions.SecurityKey));
 

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Extensions;
@@ -28,12 +27,12 @@ namespace API.Middlewares
             {
                 var userId = httpContext.User.GetUserId();
 
-                IEnumerable<string> userRoles = await _userRolesCache.GetUserRolesAsync(userId);
+                var userRoles = await _userRolesCache.GetUserRolesAsync(userId);
 
-                if ((userRoles != null) && (userRoles.Count() > 0))
+                if ((userRoles != null) && (userRoles.Any()))
                 {
-                    IEnumerable<Claim> claims = userRoles.Select(role => new Claim(ClaimTypes.Role, role));
-                    (httpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
+                    var claims = userRoles.Select(role => new Claim(ClaimTypes.Role, role));
+                    (httpContext.User.Identity as ClaimsIdentity)?.AddClaims(claims);
                 } 
             }
 

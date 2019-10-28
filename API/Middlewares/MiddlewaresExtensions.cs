@@ -1,7 +1,6 @@
-﻿using API.Middlewares;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 
-namespace API.Extensions
+namespace API.Middlewares
 {
     public static class MiddlewaresExtensions
     {

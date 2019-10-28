@@ -27,7 +27,7 @@ using API.Infrastructure.Automapper;
 using Microsoft.OpenApi.Models;
 using API.Infrastructure.Identity;
 using API.Models;
-using API.Extensions;
+using API.Middlewares;
 using API.Infrastructure.MemoryCache;
 
 namespace API
@@ -93,6 +93,8 @@ namespace API
             {
                 app.UseHsts();
             }
+
+            app.UseHttpsRedirection();
 
             app.UseSwagger();
             app.UseSwaggerUI(options =>
@@ -199,7 +201,7 @@ namespace API
         {
             app.UseExceptionHandler(options => options.Run(async context =>
             {
-                int statusCode = (int)HttpStatusCode.InternalServerError;
+                const int statusCode = (int)HttpStatusCode.InternalServerError;
 
                 context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,7 +20,7 @@ namespace Tests.Integration
 
             // Act
             var response = await _httpclient.GetAsync(url);
-            string message = await response.Content.ReadAsStringAsync();
+            var message = await response.Content.ReadAsStringAsync();
 
             // Assert
             response.EnsureSuccessStatusCode();

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Infrastructure.MemoryCache
@@ -21,9 +20,9 @@ namespace API.Infrastructure.MemoryCache
         }
 
 
-        public async Task<IEnumerable<string>> GetUserRolesAsync(string userId)
+        public async Task<IList<string>> GetUserRolesAsync(string userId)
         {
-            if (!_cache.TryGetValue(userId, out IEnumerable<string> userRoles))
+            if (!_cache.TryGetValue(userId, out IList<string> userRoles))
             {
                 using var serviceScope = _serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();

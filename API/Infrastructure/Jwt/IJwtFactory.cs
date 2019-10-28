@@ -1,7 +1,4 @@
-﻿using Domain.Entities;
-using System.Collections.Generic;
-
-namespace API.Infrastructure.Jwt
+﻿namespace API.Infrastructure.Jwt
 {
     public interface IJwtFactory
     {
