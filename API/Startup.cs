@@ -118,7 +118,7 @@ namespace API
             IdentityInitializer.Initialize(
                 app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope().ServiceProvider,
                 _configuration.GetSection("Identity:User").Get<CreateUserModel>()
-            ).Wait();
+            ).GetAwaiter().GetResult();
         }
 
 
