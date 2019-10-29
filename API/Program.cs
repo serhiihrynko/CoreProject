@@ -11,18 +11,16 @@ namespace API
     {
         public static void Main(string[] args)
         {
-            Serilog.Log.Logger = new LoggerConfiguration()
+            Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
                 .CreateLogger();
 
             try
             {
                 CreateHostBuilder(args).Build().Run();
-                return;
             } catch(Exception ex)
             {
                 Log.Fatal(ex, "Host terminated unexpectedly");
-                return;
             }
             finally
             {
